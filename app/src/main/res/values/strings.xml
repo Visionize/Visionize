@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Visionize</string>
+    <string name="detect_object_label">Detect Object</string>
+    <string name="toggle_camera_label">Toggle Camera</string>
+    <string name="predictions_value"> Predictions </string>
 </resources>
