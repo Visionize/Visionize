@@ -3,4 +3,5 @@
     <string name="detect_object_label">Detect Object</string>
     <string name="toggle_camera_label">Toggle Camera</string>
     <string name="predictions_value"> Predictions </string>
+    <string name="result_image_label">Image being analysed</string>
 </resources>
