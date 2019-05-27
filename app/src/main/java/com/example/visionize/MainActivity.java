@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 
-import com.example.imageclassifier.ImageClassifier;
-
 public abstract class MainActivity extends AppCompatActivity
         implements ImageReader.OnImageAvailableListener, View.OnClickListener, AdapterView.OnItemSelectedListener {
 
