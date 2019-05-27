@@ -7,4 +7,6 @@ import java.util.List;
 public interface Classifier {
 
     List<DetectedObject> recognizeImage(Bitmap bitmap);
+
+    void close();
 }

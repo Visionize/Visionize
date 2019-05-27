@@ -176,4 +176,10 @@ public class ImageClassifier implements Classifier {
 
         return recognitions;
     }
+
+    @Override
+    public void close() {
+        interpreter.close();
+        interpreter = null;
+    }
 }
