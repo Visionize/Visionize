@@ -1,3 +1,12 @@
+/**
+ * Main Activity for Visionize
+ *
+ * Contains all of the applications primary functions and handles all user interactions
+ *
+ * @author ndesai
+ *
+ * @version 27th May 2019
+ */
 package com.example.visionize;
 
 import android.graphics.Bitmap;
@@ -20,11 +29,12 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String MODEL_PATH = "mobilenet_v2_1.4_224.tflite";
     private static final String LABEL_PATH = "labels.txt";
-    private static final boolean QUANT_MODEL = true;
+    private static final boolean QUANT_MODEL = false;
     private static final int INPUT_SIZE = 224;
 
     private Classifier classifier;
@@ -36,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
     private CameraView cameraView;
 
 
+    /**
+     * onCreate method. Called when the activity is created
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Button toggleCameraButton; // Restrict scope as much as possible
@@ -52,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         toggleCameraButton = findViewById(R.id.toggleCameraButton);
         detectObjectButton = findViewById(R.id.detectObjectButton);
 
+        // Configure the camera using the cameraKit module
         cameraView.addCameraKitListener(new CameraKitEventListener() {
             @Override
             public void onEvent(CameraKitEvent cameraKitEvent) {
@@ -73,8 +88,14 @@ public class MainActivity extends AppCompatActivity {
                 resultImageView.setImageBitmap(bitmap);
 
                 final List<DetectedObject> results = classifier.recognizeImage(bitmap);
+                String resultString = results.toString();
+                resultString = resultString.substring(1, resultString.length() - 1); // Exclude the brackets from the results
 
-                predictionsTextView.setText(results.toString());
+                if (resultString.equals("")) {
+                    resultString = "Unclassified Object";
+                }
+
+                predictionsTextView.setText(resultString);
 
             }
 
@@ -101,18 +122,28 @@ public class MainActivity extends AppCompatActivity {
         initTensorFlowAndLoadModel();
     }
 
+    /**
+     * Restart the cameraView when the activity is resumed
+     */
     @Override
     protected void onResume() {
         super.onResume();
         cameraView.start();
     }
 
+    /**
+     * Stop the cameraView when activity is paused
+     */
     @Override
     protected void onPause() {
         cameraView.stop();
         super.onPause();
     }
 
+    /**
+     * Method that is called when the activity is closed
+     * Makes sure that the TensorFlow process is safely destroyed
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -124,6 +155,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Helper method that initializes TensorFlow Lite and loads the classifier model
+     */
     private void initTensorFlowAndLoadModel() {
         executor.execute(new Runnable() {
             @Override
@@ -143,6 +177,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Helper method that makes the "Detect Object" button visible once the classifier model is loaded
+     */
     private void makeButtonVisible() {
         runOnUiThread(new Runnable() {
             @Override
@@ -150,13 +187,5 @@ public class MainActivity extends AppCompatActivity {
                 detectObjectButton.setVisibility(View.VISIBLE);
             }
         });
-    }
-
-    private void toggleCamera() {
-        cameraView.toggleFacing();
-    }
-
-    private void captureImage() {
-        cameraView.captureImage();
     }
 }

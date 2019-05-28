@@ -1,3 +1,10 @@
+/**
+ * A TensorFlow Image Classifier (A Simple MobileNet v1.4 CNN classifier trained on the ImageNet
+ * dataset)
+ *
+ * @author ndesai
+ * @version 27th May 2019
+ */
 package com.example.visionize;
 
 import android.content.res.AssetFileDescriptor;
@@ -31,12 +38,23 @@ public class ImageClassifier implements Classifier {
     private Interpreter interpreter;
     private int inputSize;
     private List<String> labelList;
-    private boolean quant;
+    private boolean quant; // Does the model used quantized variables?
 
     public ImageClassifier() {
 
     }
 
+    /**
+     * Creates the TensorFlow Classifier given the model's path and all the other properties of model.
+     * This cannot be turned into a constructor as it is a static method
+     * @param assetManager
+     * @param modelPath
+     * @param labelPath
+     * @param inputSize
+     * @param quant
+     * @return
+     * @throws IOException
+     */
     static Classifier create(AssetManager assetManager,
                              String modelPath,
                              String labelPath,
@@ -51,6 +69,12 @@ public class ImageClassifier implements Classifier {
         return classifier;
     }
 
+    /**
+     * Classifies the Image taken into categories from the ImageNet dataset.
+     * The image is passed in as a bitmap. Returns a list of DetectedObject objects
+     * @param bitmap
+     * @return
+     */
     @Override
     public List<DetectedObject> recognizeImage(Bitmap bitmap) {
         ByteBuffer byteBuffer = convertBitmapToByteBuffer(bitmap);
@@ -65,6 +89,14 @@ public class ImageClassifier implements Classifier {
         }
     }
 
+    /**
+     * Loads the model file from the assets directory (the tflite file). Returns a MapByteBuffer
+     * of the tflite file.
+     * @param assetManager
+     * @param modelPath
+     * @return
+     * @throws IOException
+     */
     private MappedByteBuffer loadModelFile(AssetManager assetManager, String modelPath) throws IOException {
         AssetFileDescriptor fileDescriptor = assetManager.openFd(modelPath);
         FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
@@ -74,6 +106,14 @@ public class ImageClassifier implements Classifier {
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
     }
 
+    /**
+     * Loads the labels from the labels file in the assets directory. Returns a list of Strings
+     * of the labels from the ImageNet dataset
+     * @param assetManager
+     * @param labelPath
+     * @return
+     * @throws IOException
+     */
     private List<String> loadLabelList(AssetManager assetManager, String labelPath) throws IOException {
         List<String> labelList = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(assetManager.open(labelPath)));
@@ -85,6 +125,13 @@ public class ImageClassifier implements Classifier {
         return labelList;
     }
 
+    /**
+     * A method to convert a Bitmap to a ByteBuffer. This is necessary because the Android Camera API
+     * returns a Bitmap for each image taken by the camera. But the TensorFlow Lite model requires a
+     * ByteBuffer as the input format for the image.
+     * @param bitmap
+     * @return
+     */
     private ByteBuffer convertBitmapToByteBuffer(Bitmap bitmap) {
         ByteBuffer byteBuffer;
 
@@ -116,7 +163,12 @@ public class ImageClassifier implements Classifier {
         return byteBuffer;
     }
 
-
+    /**
+     * Sorts the label byte probability array. This makes for relevant predictions to be displayed
+     * Returns a list of DetectedObject objects
+     * @param labelProbArray
+     * @return
+     */
     private List<DetectedObject> getSortedResultByte(byte[][] labelProbArray) {
 
         PriorityQueue<DetectedObject> pq =
@@ -147,6 +199,12 @@ public class ImageClassifier implements Classifier {
         return recognitions;
     }
 
+    /**
+     * Sorts the label probability array (this method is used for float based models).
+     * Returns a list of DetectedObject objects
+     * @param labelProbArray
+     * @return
+     */
     private List<DetectedObject> getSortedResultFloat(float[][] labelProbArray) {
 
         PriorityQueue<DetectedObject> pq =
@@ -154,8 +212,8 @@ public class ImageClassifier implements Classifier {
                         MAX_RESULTS,
                         new Comparator<DetectedObject>() {
                             @Override
-                            public int compare(DetectedObject lhs, DetectedObject rhs) {
-                                return Float.compare(rhs.getConfidence(), lhs.getConfidence());
+                            public int compare(DetectedObject first, DetectedObject second) {
+                                return Float.compare(first.getConfidence(), second.getConfidence());
                             }
                         });
 
@@ -177,6 +235,9 @@ public class ImageClassifier implements Classifier {
         return recognitions;
     }
 
+    /**
+     * Safely shuts down the TensorFlow classifier model
+     */
     @Override
     public void close() {
         interpreter.close();
