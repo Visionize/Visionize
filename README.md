@@ -1,2 +1,2 @@
 # Visionize
-An Android application to do simple object detection
+An Android application to classify produce and their health
